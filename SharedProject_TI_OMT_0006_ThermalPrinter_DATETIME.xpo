@@ -1,0 +1,743 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: ThermalPrinter descarregado
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #ThermalPrinter
+    PROPERTIES
+      Name                #ThermalPrinter
+      Origin              #{A830E329-A053-4427-A042-46FF36049A3C}
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #AppendFileToFile
+        #public void AppendFileToFile(FileName original, FileName distination)
+        #{
+        #    #File
+        #    FileIOPermission    FileIOPermissionA   = new FileIOPermission(distination, #io_append);
+        #    FileIOPermission    FileIOPermissionR   = new FileIOPermission(original, #io_read);
+        #    InteropPermission   InteropPermission   = new InteropPermission(InteropKind::ClrInterop);
+        #    Set                 permissionset       = new set(types::Class);
+        #    ;
+        #
+        #    // create permissionset
+        #    permissionset.add(FileIOPermissionA);
+        #    permissionset.add(FileIOPermissionR);
+        #    permissionset.add(InteropPermission);
+        #    // assert permissions
+        #    CodeAccessPermission::assertMultiple(permissionset);
+        #    // append text from source file to destination file
+        #    System.IO.File::AppendAllText(distination, System.IO.File::ReadAllText(original));
+        #
+        #    // limit the scope of the assert
+        #    CodeAccessPermission::revertAssert();
+        #}
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #class ThermalPrinter
+        #{
+        #    str     strModelPathRodape;
+        #    str     strModelPathCabecalho;
+        #    str     strPrintPath;
+        #
+        #    // PRODUÇÃO WELOZE
+        #    str     strCustId;
+        #    str     strCustName;
+        #    str     strItemId;
+        #    str     strItemName;
+        #    str     strItemName1;
+        #    str     strItemName2;
+        #    str     strItemName3;
+        #    str     strProdId;
+        #    str     strDate;
+        #    str     strInventBatchId;
+        #    str     strBOMUnitId;
+        #    str     strItemIdBarCode;
+        #    str     strQtySched;
+        #
+        #    // TDK
+        #    LabelEpcosData epcosData;
+        #
+        #    // MWM
+        #    str     strID;
+        #    str     strExternalReferenceItem;
+        #    str     strExtItem;
+        #
+        #    // DELAV
+        #    str     strInventSerialId;
+        #    str     strInventColorId;
+        #    str     strInventSizeId;
+        #    str     strconfigId;
+        #    str     strInventStyleId;
+        #
+        #    // Valeo
+        #    str     strProdDate;
+        #    str     strRevItem;
+        #    str     strExternalItemId;
+        #    str     strOOP;
+        #    utcDateTime utcDateTimeSystem;
+        #    utcDateTime utcDateTimeSystem2;
+        #    str     strProdDateTime;
+        #
+        #
+        #
+        #
+        #    /*
+        #    Dados guardados em função de possivel uso futuro
+        #
+        #    str                             strIdDHB;
+        #    str                             strQtySchedBarCode;
+        #    str                             strFabDate;
+        #    str                             strInventColorId; //cor
+        #    str                             strInventSizeId;  //tensao
+        #    str                             strConfigId;      //configuracao
+        #    str                             strInventStyleId; //largura da lamina
+        #    str                             strInventSerialId;//Numero de serie
+        #    str                             strLabelOBS;      //OBS para ser utilizada na OMT
+        #
+        #    //Etiqueta de Volume
+        #    tmpCustInvoiceTicket            tmpCustInvoiceTicket;
+        #
+        #    str                             strFiscalDocumentNumber;
+        #    str                             strAddress;
+        #    str                             strAddress2;
+        #    str                             strAddress3;
+        #    str                             strFiscalDocumentDate;
+        #    str                             strCarrierName;
+        #    str                             strCarrierFone;
+        #    str                             strGrossWeight;
+        #    str                             strNetWeight;
+        #    str                             strVolumeQty_BR;
+        #
+        #
+        #    //Etiqueta de Produto
+        #    str                             strQtySched;
+        #    str                             strQtySchedBarCode;
+        #
+        #    str                             strFabDate;
+        #
+        #    str                             strInventColorId; //cor
+        #    str                             strInventSizeId;  //tensao
+        #    str                             strConfigId;      //configuracao
+        #    str                             strInventStyleId; //largura da lamina
+        #    str                             strInventSerialId;//Numero de serie
+        #    str                             strLabelOBS;      //OBS para ser utilizada na OMT
+        #
+        #    //DHB
+        #
+        #    //<GSW workitem="WELTRAD10_EtiquetaMateriaPrima" dev="felipet" date="30/10/2015">
+        #    //Etiqueta de Matéria-Prima
+        #    str                             strILDescription;               //_thermalInpuLabel.Description
+        #    str                             strILFiscalDocumentAccountNum;  // _thermalInpuLabel.FiscalDocumentAccountNum
+        #    str                             strILItemId;                    //_thermalInpuLabel.ItemId
+        #    str                             strILFiscalDocumentNumber;      //_thermalInpuLabel.FiscalDocumentNumber
+        #    str                             strILItensQuantity;             //_thermalInpuLabel.ItensQuantity
+        #    str                             strILUnit;                      //_thermalInpuLabel.Unit
+        #    str                             strILFiscalDocumentDate;        //_thermalInpuLabel.FiscalDocumentDate
+        #    str                             strILInventBatchId;             //strInventBatchId = _thermalInpuLabel.InventBatchId
+        #    str                             strILThirdPartyName;            //_thermalInpuLabel.ThirdPartyName
+        #    str                             strILInventSerialId;            //Numero de serie
+        #    str                             strILInventColorId;             //cor           @COR
+        #    str                             strILInventSizeId;              //tensao           @TENSAO
+        #    str                             strILconfigId;                  //configuracao   @CONFIG
+        #    str                             strILInventStyleId;             //largura da lamina     @LARGLAMINA
+        #    //</GSW>
+        #
+        #    //<GSW workitem="WELTRAD11_EtiquetaFaturamentoMarcopolo" dev="felipet" date="01/12/2015">
+        #    //Etiqueta de Faturamento da Marcopolo
+        #    str                             strMPFiscalDocumentAccountNum;  // _thermalInpuLabel.FiscalDocumentAccountNum
+        #    str                             strMPItensQuantity;             //_thermalInpuLabel.ItensQuantity @QTD
+        #    str                             strMPUnit;                      //_thermalInpuLabel.Unit @QTD
+        #    str                             strMPFiscalDocumentDate;        //_thermalInpuLabel.FiscalDocumentDate
+        #    str                             strMPInventBatchId;             //strInventBatchId = _thermalInpuLabel.InventBatchId
+        #
+        #    str                             strMPThirdPartyName;            //@NOMECLIENTE _thermalInpuLabel.ThirdPartyName
+        #    str                             strMPFiscalDocumentNumber;      //@NF _thermalInpuLabel.FiscalDocumentNumber
+        #    str                             strMPPurchaseOrder;             //@NUMPEDIDO          (CustInvoiceJour).PurchaseOrder / (SalesLine).CustomerLineNum
+        #    str                             strMPCustomerLineNum;           //@NUMPEDIDO          (CustInvoiceJour).PurchaseOrder / (SalesLine).CustomerLineNum
+        #    str                             strMPItemId;                    //@NOMEPESQUISAITEM _thermalInpuLabel.ItemId      (FiscalDocumentLine_BR).ItemId + FiscalDocumentLine_BR.getLineDescription()
+        #    str                             strMPDescription;               //@NOMEPESQUISAITEM _thermalInpuLabel.Description      (FiscalDocumentLine_BR).ItemId + FiscalDocumentLine_BR.getLineDescription()
+        #    str                             strMPExternalItemId;            //@CODIGOITEM         (FiscalDocumentLine_BR).ItemId (CustVendExternalItem).ExternalItemId
+        #    str                             strMPEDIDepositoMarcopolo;      //@DEPOSITO Deposito Marcopolo
+        #    //</GSW>
+        #
+        #    //<Venture>
+        #    //<2017.12.26 - ilziane.silva - VEN040>
+        #    str                             strEPDueDate;
+        #    //</Venture>
+        #
+        #    // <Weloze - Lucas>
+        #    str     itemId;
+        #    str     inventDimId;
+        #    str     qty;
+        #    str     qty_Unit;
+        #    str     qrCode;
+        #    str     itemName1, itemName2;
+        #    str     labelDate;
+        #    str     batchId;
+        #    str     vendorName;
+        #    // </Weloze>
+        #
+        #    //<Venture 2018.09.26 – pedro.tornich – VEN062>
+        #    str     productionDate;
+        #    str     externalItemId;
+        #    //</Venture>
+        #    //<ALB_024_EtiquetaValeo - 2019/09/23>
+        #    str     qrCodeValeo;
+        #    //</ALB>
+        #    //<ALB_030_LabelThyssen - 2020/01/20>
+        #    str     strExtItem;
+        #    //</ALB>
+        #    */
+        #}
+      ENDSOURCE
+      SOURCE #GenerateLabel
+        #public void GenerateLabel(
+        #                            ProdTable               _prodTable,
+        #                            CustAccount             _custAccount,
+        #                            LabelSize               _labelSize
+        #                         )
+        #{
+        #    // Tabelas
+        #    SalesTable                _salesTable;
+        #    CustTable                 _custTable;
+        #    DirPartyTable             _dirPartyTable;
+        #    WelManMWMTicket           _WelManMWMTicket;
+        #    CustVendExternalItem      _CustVendExternalItem;
+        #    InventDim                 _inventDim;
+        #
+        #
+        #
+        #    int                       contador;
+        #    str                       strContador;
+        #    date                      expiryDate;
+        #
+        #    EcoResColorName           inventColorIdAux1;
+        #    EcoResColorName           inventColorIdAux2;
+        #    epcosData = new LabelEpcosData();
+        #// <TI_OMT workitem="TI_OMT_0002_NewMarcopoloLabel_Extitem" dev="Wendel" date="06/07/2022">
+        #//CONSULTA PARA PEGAR OS VALORES DE EXTITEM
+        #    select _CustVendExternalItem
+        #    where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #        && _CustVendExternalItem.CustVendRelation == _custAccount
+        #        && (_CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::Cust
+        #        || _CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::CustGroup)
+        #        join _inventDim
+        #            where _CustVendExternalItem.InventDimId == _inventDim.inventDimId
+        #                && _inventDim.InventColorId == _prodTable.inventDim().InventColorId;
+        #
+        #    if (!_CustVendExternalItem)
+        #    {
+        #        select firstOnly _CustVendExternalItem
+        #         where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #            && _CustVendExternalItem.CustVendRelation == _custAccount
+        #            && (_CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::Cust
+        #            || _CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::CustGroup);
+        #
+        #    }
+        #
+        #    strExtItem = _CustVendExternalItem.ExternalItemId ? _CustVendExternalItem.ExternalItemId : _prodTable.ItemId;
+        #    strExternalItemId = _CustVendExternalItem.ExternalItemId;
+        #
+        #    // </TI_OMT>
+        #
+        #    if (!_custAccount)
+        #    {
+        #        strCustId = "CLIENTE NAO INFORMADO";
+        #    }
+        #    else
+        #    {
+        #        strCustId = _custAccount;
+        #        _custTable = CustTable::find(strCustId);
+        #        select _dirPartyTable where _dirPartyTable.RecId == _custTable.Party;
+        #    }
+        #
+        #    _inventDim              = InventDim::find(_prodTable.InventDimId);
+        #
+        #    strCustName             = _dirPartyTable.Name;
+        #    strItemId               = _prodTable.ItemId;
+        #    strItemName             = _prodTable.Name;
+        #    strItemName1            = subStr(strItemName, 1, 25);
+        #    strItemName2            = subStr(strItemName, 26, 25);
+        #    strItemName3            = subStr(strItemName, 51, 25);
+        #    strProdId               = _prodTable.ProdId;
+        #    strQtySched             = strFmt('%1',num2str(_prodTable.QtySched, 1, 0, DecimalSeparator::Auto, ThousandSeparator::None));
+        #    strDate                 = date2str(_prodTable.DlvDate,123,2,4,2,4,2);
+        #    strInventBatchId        = _inventDim.inventBatchId;
+        #    strBOMUnitId            = InventTable::find(_prodTable.ItemId).BOMUnitId;
+        #
+        #    strInventColorId        = _inventDim.InventColorId;
+        #    strInventSizeId         = _inventDim.InventSizeId;
+        #    strConfigId             = _inventDim.configId;
+        #    strInventStyleId        = _inventDim.InventStyleId;
+        #    strInventSerialId       = _inventDim.inventSerialId;
+        #    strExtItem              = _CustVendExternalItem.ExternalItemId;
+        #
+        #    // Data atual no formato dd/mm/yyyy
+        #    strProdDate = date2str(systemDateGet(), 123, 2, DateSeparator::Slash, 2, DateSeparator::Slash, 4);
+        #    // Data atual no formato dd/mm/yyyy hh:mm:ss com o Timezone do usuário
+        #    utcDateTimeSystem = DateTimeUtil::getSystemDateTime();
+        #    utcDateTimeSystem2 = DateTimeUtil::applyTimeZoneOffset(utcDateTimeSystem,DateTimeUtil::getUserPreferredTimeZone());
+        #    strProdDateTime = datetime2str(utcDateTimeSystem2);
+        #
+        #    // Realiza determinadas conexões dependendo do cliente
+        #    switch (_custAccount)
+        #    {
+        #        case 'WELO-000005': // TDK
+        #
+        #            // Valido por um ano, a partir da data de impressao
+        #            expiryDate = any2date(DateTimeUtil::addDays(DateTimeUtil::newDateTime(today(), 0), 180));
+        #
+        #            // Busca referencia externa
+        #            select _CustVendExternalItem
+        #            where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #                && _CustVendExternalItem.CustVendRelation == _custAccount
+        #                && (_CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::Cust
+        #                || _CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::CustGroup);
+        #
+        #            if (!_CustVendExternalItem)
+        #            {
+        #                throw error('Deve ser definido o código externo para o item da ordem de produção.');
+        #            }
+        #
+        #            epcosData.parmBatchId(_prodTable.ProdId);
+        #            epcosData.parmExpireDate(expiryDate);
+        #            epcosData.parmExternalDescription(_CustVendExternalItem.ExternalItemId);
+        #            epcosData.parmManufacturedDate(today());
+        #
+        #            strDate = epcosData.getManufacturedDateWithDots();
+        #            break;
+        #
+        #        case 'WELO-000007': // MWM
+        #
+        #            // Tabela _WelManMWMTicket guarda o ID externo para etiqueta MWM
+        #            // Busca o valor da tabela, adiciona + 1 para a etiqueta atual,
+        #            // e atualiza na tabela para proxima etiqueta
+        #            ttsBegin;
+        #                select forUpdate _WelManMWMTicket;
+        #                contador = (_WelManMWMTicket.IDNumber + 1);
+        #                _WelManMWMTicket.IDNumber = contador;
+        #                _WelManMWMTicket.update();
+        #            ttsCommit;
+        #
+        #            strContador = strFmt("%1%2",'000000',contador);
+        #            strID = strFmt("%1%2%3", "004554", date2str(_prodTable.DlvDate,321,2,0,2,0,2), subStr(strContador,strLen(strContador)-5,6));
+        #
+        #            break;
+        #
+        #        case 'OMT-000154': //Marcopolo
+        #            select firstOnly _CustVendExternalItem
+        #            where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #                && _CustVendExternalItem.CustVendRelation == _custAccount;
+        #
+        #            strExternalItemId = _CustVendExternalItem.ExternalItemId;
+        #
+        #            strItemName1 = subStr(strItemName, 1, 40);
+        #            strItemName2 = subStr(strItemName, 41, 40);
+        #            strItemName3 = subStr(strItemName, 81, 40);
+        #
+        #            break;
+        #
+        #        case 'OMT-000244': //HM
+        #            inventColorIdAux1 = _inventDim.InventColorId;
+        #
+        #            select _CustVendExternalItem
+        #                where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #                    && _CustVendExternalItem.CustVendRelation == _custAccount
+        #                    && _CustVendExternalItem.ModuleType == ModuleInventPurchSalesVendCustGroup::Cust
+        #            join _inventDim
+        #                where _inventDim.inventDimId == _CustVendExternalItem.InventDimId
+        #                    && _inventDim.InventColorId == inventColorIdAux1;
+        #
+        #            if (!_CustVendExternalItem)
+        #            {
+        #                throw error('Deve ser definido o código externo para o item da ordem de produção.');
+        #            }
+        #
+        #            break;
+        #
+        #        case 'OMT-000478':  //Valeo
+        #            // Referencia externa para etiqueta RefCliente
+        #            select _CustVendExternalItem
+        #            where _CustVendExternalItem.ItemId == _prodTable.ItemId
+        #               && _CustVendExternalItem.CustVendRelation == _CustAccount;
+        #
+        #            if (!_CustVendExternalItem)
+        #                throw error('Deve ser definido o código externo para o item da ordem de produção.');
+        #
+        #            strExternalItemId = _CustVendExternalItem.ExternalItemId;
+        #            strRevItem = InventTable::find(_prodTable.ItemId).Reference;
+        #            strOOP = subStr(_prodTable.ProdId, 5, 6);
+        #            strItemName1 = subStr(strItemName, 25, 36);
+        #            strItemName2 = subStr(strItemName, 61, 36);
+        #            break;
+        #    }
+        #
+        #}
+        #
+        #
+        #
+        #
+      ENDSOURCE
+      SOURCE #ModelPath
+        #public void ModelPath(ThermalPrinterName         _printerName,
+        #                      ThermalPrinterLabelType    _labelType,
+        #                      LabelSize                  _labelSize,
+        #                      CustAccount                _custAccount)
+        #{
+        #    // Tabelas
+        #    ThermalPrintersTable     _thermalPrintersTable;
+        #    ThermalLabelsTable       _thermalLabelsTable;
+        #
+        #    select _thermalLabelsTable
+        #    where _thermalLabelsTable.CustAccount == _custAccount;
+        #
+        #    if (!_thermalLabelsTable) { _custAccount = ''; }
+        #
+        #    select _thermalLabelsTable
+        #        where
+        #        _thermalLabelsTable.ThermalPrinterLabelType      == _labelType
+        #        &&  _thermalLabelsTable.LabelSize                == _labelSize
+        #        &&  _thermalLabelsTable.CustAccount              == _custAccount
+        #        &&  _thermalLabelsTable.dataAreaId               ==  curext()
+        #
+        #        join _thermalPrintersTable
+        #        where
+        #            _thermalLabelsTable.ThermalPrinterModel      == _thermalPrintersTable.ThermalPrinterModel
+        #        &&  _thermalLabelsTable.LabelSize                == _thermalPrintersTable.LabelSize
+        #        &&  _thermalLabelsTable.dataAreaId               == _thermalPrintersTable.dataAreaId
+        #
+        #        &&  _thermalPrintersTable.ThermalPrinterName     == _printerName
+        #        &&  _thermalPrintersTable.LabelSize              == _labelSize;
+        #
+        #    if (_thermalLabelsTable) {
+        #        strModelPathRodape = _thermalLabelsTable.FilePathContent;
+        #        strModelPathCabecalho = _thermalLabelsTable.FilePathHeader;
+        #        strPrintPath = _thermalPrintersTable.PrinterPath;
+        #    } else {
+        #        warning(strFmt("Não existem Modelos de \"%1\" com Tamanho da Etiqueta \"%2\" para a impressora: \"%3\"",
+        #                        _labelType, _labelSize, _printerName));
+        #        warning(strFmt("Informações Adicionais: Cliente \"%4\"; Empresa \"%5\";",
+        #                        _custAccount, curext()));
+        #        throw error("A impressão da etiqueta foi Cancelada!");
+        #    }
+        #
+        #
+        #}
+      ENDSOURCE
+      SOURCE #ProductLabel
+        #Public void ProductLabel(ProdTable                      _prodTable,
+        #                        ThermalPrinterName              _printerName,
+        #                        ThermalPrinterLabelType         _labelType,
+        #                        LabelSize                       _labelSize,
+        #                        Qty                             _qntLabel,
+        #                        Qty                             _qntProd,
+        #                        CustAccount                     _CustAccount
+        #                        )
+        #{
+        #    // As definições se repetem em diferentes etiquetas para preservar
+        #    // a facilidade de leitura e identificação de onde cada uma pertence
+        #
+        #    // Segue todas as definições referentes às etiquetas de produção
+        #
+        #    // Weloze PRD
+        #    #define.CustId('@CODIGOCLIENTE')
+        #    #define.CustName('@NOMECLIENTE')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.ItemName2('@NOMEITEM2')
+        #    #define.ProdId('@OP')
+        #    #define.Date('@DATA')
+        #    #define.QtySched('@QTD')
+        #    #define.inventBatchId('@LOTE')
+        #    #define.ItemIdBarCode('@CBARRAS')
+        #
+        #    // TDK
+        #    #define.QrCodeInfo('@QRCODEINFO')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.QtySched('@QTD')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.ItemName2('@NOMEITEM2')
+        #    #define.ExternalDescription('@EXTERNALDESCRIPTION')
+        #    #define.BatchId('@BATCHID')
+        #    #define.Date('@DATA')
+        #    #define.ExpiryDate('@EXPIRYDATE')
+        #
+        #    // MWM
+        #    #define.ExternalReferenceItem('@ITEMREF')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.Date('@DATA')
+        #    #define.QtySchedBarCode('@MWMQTDCBARRAS')
+        #    #define.QtySched('@QTD')
+        #    #define.inventBatchId('@LOTE')
+        #    #define.ID('@ID')
+        #    // <TI_OMT workitem="TI_OMT_0002_NewMarcopoloLabel_Extitem" dev="Wendel" date="06/07/2022">
+        #    #define.ExtItem('@EXTITEM')
+        #    // </TI_OMT>
+        #
+        #    //Delav PRD
+        #    #define.CustId('@CODIGOCLIENTE')
+        #    #define.CustName('@NOMECLIENTE')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.ItemName2('@NOMEITEM2')
+        #    #define.ProdId('@OP')
+        #    #define.Date('@DATA')
+        #    #define.QtySched('@QTD')
+        #    #define.inventBatchId('@LOTE')
+        #    #define.ItemIdBarCode('@CBARRAS')
+        #    #define.ConfigId('@CONFIG')
+        #    #define.InventSerialId('@NSERIE')
+        #    #define.InventColorId('@COR')
+        #    #define.InventSizeId('@TENSAO')
+        #    #define.InventStyleId('@LARGLAMINA')
+        #
+        #    // OMT PRD
+        #    #define.CustId('@CODIGOCLIENTE')
+        #    #define.CustName('@NOMECLIENTE')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.ItemName2('@NOMEITEM2')
+        #    #define.ProdId('@OP')
+        #    #define.QtySched('@QTD')
+        #    #define.Date('@DATA')
+        #    #define.inventBatchId('@LOTE')
+        #    #define.InventSizeId('@TENSAO')
+        #    #define.ConfigId('@CONFIG')
+        #    #define.InventSerialId('@NSERIE')
+        #    #define.InventColorId('@COR')
+        #    #define.ItemIdBarCode('@CBARRAS')
+        #    #define.DateTimeSystem('@DATETIME')
+        #
+        #        // Pequena
+        #    #define.ExternalReferenceItem('@ITEMREF')
+        #    #define.ActualDate('@HOJE')
+        #
+        #    // Valeo
+        #    #define.ExternalItemId('@EXTERNOID')
+        #    #define.ProductionDate('@PRODDATA')
+        #    #define.RevItem('@CR')
+        #    #define.OOP('@OOP')
+        #
+        #    // Marcopolo
+        #    #define.ExternalReferenceItem('@ITEMREF')
+        #    #define.QtySched('@QTD')
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemNameA1('@NOMEITEMA1')
+        #    #define.ItemNameA2('@NOMEITEMA2')
+        #    #define.ItemNameA3('@NOMEITEMA3')
+        #    #define.ProdId('@OP')
+        #    #define.ActualDate('@HOJE')
+        #
+        #    // Identificação Item
+        #    #define.ItemId('@CODIGOITEM')
+        #    #define.ItemName1('@NOMEITEM1')
+        #    #define.ItemName2('@NOMEITEM2')
+        #    #define.ItemName3('@NOMEITEM3')
+        #    #define.UnidadeItem('@UND')
+        #    #define.InventColorId('@COR')
+        #    #define.ItemIdBarCode('@CBARRAS')
+        #    #define.ProdId('@OP')
+        #
+        #    // Outros
+        #    #define.utf8Format(65001)
+        #    #define.ansiFormat(1252)
+        #
+        #    Container               lineRead;
+        #    Notes                   lineStr;
+        #    int                     i;
+        #
+        #    str                     rodapePath,rodapeFileName,rodapeExtension;
+        #    str                     cabecalhoPath,cabecalhoFileName,cabecalhoExtension;
+        #
+        #    FilePath                rodapeFullPath, cabecalhoFullPath;
+        #    FilePath                tempFilePath,rodapeFullPathTemp,cabecalhoFullPathTemp;
+        #
+        #    TextIo                  txIoRead, txIoWrite;
+        #    FileIOPermission        fioPermission;
+        #    System.Exception        e;
+        #
+        #    // Realiza consultas entre tabelas e popula as variaveis de classe
+        #    this.GenerateLabel(_prodTable, _CustAccount, _labelSize);
+        #
+        #    // Seleciona a quantidade da OP caso informada <= 0
+        #    if (_qntProd <= 0)
+        #        _qntProd = str2int(strQtySched);
+        #    if (_qntProd <= 0)
+        #        throw error(strFmt("Não existem volumes para imprimir a etiqueta de produto do item: %1, OP: %2",strItemName, strProdId));
+        #
+        #    // Etiqueta configurada para imprimir 4 por vez
+        #    if (_labelSize == LabelSize::Etiqueta25x15)
+        #    {
+        #        _qntLabel = roundUp(_qntLabel / 4, 1);
+        #    }
+        #
+        #    // Seleciona a etiqueta modelo
+        #    this.ModelPath(_printerName, _labelType, _labelSize, _CustAccount);
+        #
+        #    rodapeFullPath = strModelPathRodape;
+        #    [rodapePath,rodapeFileName,rodapeExtension] = fileNameSplit(rodapeFullPath);
+        #
+        #    cabecalhoFullPath = strModelPathCabecalho;
+        #    [cabecalhoPath,cabecalhoFileName,cabecalhoExtension] = fileNameSplit(cabecalhoFullPath);
+        #
+        #    if(!WINAPI::fileExists(rodapeFullPath))
+        #        throw error("Caminho do Rodapé do Modelo invalido");
+        #    if(!WINAPI::fileExists(cabecalhoFullPath))
+        #        throw error("Caminho do Cabeçalho do Modelo invalido");
+        #
+        #    // Setando o caminho do arquivo temporario.
+        #    tempFilePath = WINAPI::getTempPath();
+        #
+        #    //weloze - Andre 06/09 - alteração para considerar item de segurança
+        #    if (_prodTable.InventSecurityItem == NoYesCombo::Yes)
+        #    {
+        #        cabecalhoFileName += '_seg';
+        #        cabecalhoFullPath = cabecalhoPath + cabecalhoFileName + cabecalhoExtension;
+        #    }
+        #
+        #    rodapeFullPathTemp    = tempFilePath + rodapeFileName    + rodapeExtension;
+        #    cabecalhoFullPathTemp = tempFilePath + cabecalhoFileName + cabecalhoExtension;
+        #
+        #    // Assert permission.
+        #    fioPermission = new FileIOPermission(rodapeFullPathTemp ,"RW");
+        #    fioPermission.assert();
+        #
+        #    for (i = 0; i < _qntLabel; i++)
+        #    {
+        #        // Se o arquivo temp existe, deleta.
+        #        if (WINAPI::fileExists(rodapeFullPathTemp))
+        #            WINAPI::deleteFile(rodapeFullPathTemp);
+        #
+        #        if (WINAPI::fileExists(cabecalhoFullPathTemp))
+        #            WINAPI::deleteFile(cabecalhoFullPathTemp);
+        #
+        #        //Copia Originais para diretorio TEMP
+        #        WinAPI::copyFile(rodapeFullPath,   rodapeFullPathTemp,   true);
+        #        WinAPI::copyFile(cabecalhoFullPath,cabecalhoFullPathTemp,true);
+        #
+        #        //Lê o arquivo original
+        #        txIoRead = new TextIO(rodapeFullPath, 'R', #utf8Format); //PPLA_UTF
+        #        txIoRead.inFieldDelimiter("^~~^");
+        #
+        #        //Cria o arquivo temporario para enviar a impressora
+        #        txIoWrite = new TextIO(rodapeFullPathTemp, 'W', #utf8Format);
+        #
+        #        do
+        #        {
+        #            lineRead = txIoRead.read();
+        #            lineStr = conPeek(lineRead,1);
+        #
+        #            lineStr = strReplace(lineStr, #CustId,                      strCustId);
+        #            lineStr = strReplace(lineStr, #CustName,                    subStr(strCustName,1,24));
+        #            lineStr = strReplace(lineStr, #ItemId,                      strItemId);
+        #            // <TI_OMT workitem="TI_OMT_0002_NewMarcopoloLabel_Extitem" dev="Wendel" date="06/07/2022">
+        #            lineStr = strReplace(lineStr, #ExtItem,                     strExtItem);
+        #            // </TI_OMT>
+        #            lineStr = strReplace(lineStr, #ItemIdBarCode,               strItemId);
+        #            lineStr = strReplace(lineStr, #ItemName1,                   strItemName1);
+        #            lineStr = strReplace(lineStr, #ItemName2,                   strItemName2);
+        #            lineStr = strReplace(lineStr, #ItemName3,                   strItemName3);
+        #            lineStr = strReplace(lineStr, #DateTimeSystem,              strProdDateTime);
+        #
+        #            lineStr = strReplace(lineStr, #ProdId,                      strProdId);
+        #            lineStr = strReplace(lineStr, #QtySched,                    strFmt("%1 %2",num2str(_qntProd, 1, 0, DecimalSeparator::Auto, ThousandSeparator::None),strBOMUnitId));
+        #            lineStr = strReplace(lineStr, #Date,                        strDate);
+        #            lineStr = strReplace(lineStr, #inventBatchId,               strInventBatchId);
+        #
+        #            // TDK
+        #            lineStr = strReplace(lineStr, #ExternalDescription,         epcosData.parmExternalDescription());
+        #            lineStr = strReplace(lineStr, #QrCodeInfo,                  epcosData.getQrCodeInfo());
+        #            lineStr = strReplace(lineStr, #BatchId,                     epcosData.parmBatchId());
+        #            lineStr = strReplace(lineStr, #ExpiryDate,                  epcosData.getExpiryDataWithDots());
+        #
+        #            // MWM
+        #            lineStr = strReplace(lineStr, #ExternalReferenceItem,       strExternalItemId);
+        #            lineStr = strReplace(lineStr, #ID,                          strID);
+        #            lineStr = strReplace(lineStr, #QtySchedBarCode,             strFmt("%1",num2str(_qntProd, 1, 0, DecimalSeparator::Auto, ThousandSeparator::None)));
+        #
+        #            // DELAV
+        #            lineStr = strReplace(lineStr, #InventSizeId,                strInventSizeId);
+        #            lineStr = strReplace(lineStr, #configId,                    strconfigId);
+        #            lineStr = strReplace(lineStr, #InventStyleId,               strInventStyleId);
+        #            lineStr = strReplace(lineStr, #InventSerialId,              strInventSerialId);
+        #
+        #            // OMT
+        #            lineStr = strReplace(lineStr, #InventColorId,               strInventColorId);
+        #            lineStr = strReplace(lineStr, #ActualDate,                  strFmt('%1',systemDateGet()));
+        #            lineStr = strReplace(lineStr, #UnidadeItem,                 subStr(strBOMUnitId,1,27));
+        #
+        #            // Marcopolo
+        #            lineStr = strReplace(lineStr, #ItemNameA1,                  strItemName1);
+        #            lineStr = strReplace(lineStr, #ItemNameA2,                  strItemName2);
+        #            lineStr = strReplace(lineStr, #ItemNameA3,                  strItemName3);
+        #
+        #            // Valeo
+        #            lineStr = strReplace(lineStr, #ExternalItemId,              strExternalItemId);
+        #            lineStr = strReplace(lineStr, #ProductionDate,              strProdDate);
+        #            lineStr = strReplace(lineStr, #RevItem,                     strRevItem);
+        #            lineStr = strReplace(lineStr, #OOP,                         strOOP);
+        #
+        #            txIoWrite.write(lineStr);
+        #
+        #        } while(lineRead);
+        #
+        #        txIoWrite = null;
+        #        txIoRead  = null;
+        #
+        #        this.AppendFileToFile(rodapeFullPathTemp,cabecalhoFullPathTemp);
+        #
+        #        //Envia para impressora termica a etiqueta
+        #        if(!WinAPI::copyFile(cabecalhoFullPathTemp,strPrintPath,false))
+        #            throw error("Arquivo indisponível ou Caminho de Rede da Impressora invalido.");
+        #
+        #    }
+        #}
+        #
+        #
+        #
+        #
+      ENDSOURCE
+    ENDMETHODS
+  ENDCLASS
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : TI_OMT_0006_ThermalPrinter_DATETIME unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #TI_OMT_0006_ThermalPrinter_DATETIME
+  SHARED
+  PROPERTIES
+    Name                #TI_OMT_0006_ThermalPrinter_DATETIME
+    Origin              #{7D77C108-5C4B-4974-AFB4-7103545B2C15}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #Classes
+      PROPERTIES
+        Name                #Classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 1055511
+        NODETYPE 329
+        NAME #ThermalPrinter
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END

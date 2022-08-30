@@ -1,0 +1,134 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: DBE
+
+; Microsoft Dynamics AX Enumtype : PrinterConfigurationName unloaded
+; --------------------------------------------------------------------------------
+  ENUMTYPEVERSION 1
+  
+  ENUMTYPE #PrinterConfigurationName
+    PROPERTIES
+      Name                #PrinterConfigurationName
+      ConfigurationKey    #WELTRAD01_EtiquetaVolume
+      UseEnumValue        #Yes
+      Origin              #{C320A5BB-DF1D-4FFE-9FD0-981FF6B34B97}
+    ENDPROPERTIES
+    
+    TYPEELEMENTS
+      #ArgoxOS214_Weloze
+      PROPERTIES
+        Name                #ArgoxOS214_Weloze
+        Label               #Weloze Logística (Argox OS 214)
+        EnumValue           #0
+      ENDPROPERTIES
+      
+      #DatamaxClass
+      PROPERTIES
+        Name                #DatamaxClass
+        Label               #Weloze Expedição (Datamax Class)
+        EnumValue           #1
+      ENDPROPERTIES
+      
+      #AllegroPro6000
+      PROPERTIES
+        Name                #AllegroPro6000
+        Label               #OMT Embalagem (Allegro PRO 6000)
+        EnumValue           #2
+      ENDPROPERTIES
+      
+      #BematechLB1000
+      PROPERTIES
+        Name                #BematechLB1000
+        Label               #Delav Faturamento (Bematech LB-1000)
+        EnumValue           #3
+      ENDPROPERTIES
+      
+      #DatamaxClass2
+      PROPERTIES
+        Name                #DatamaxClass2
+        Label               #Weloze Recebimento (Datamax Class)
+        EnumValue           #4
+      ENDPROPERTIES
+      
+      #ArgoxOS214_OMT
+      PROPERTIES
+        Name                #ArgoxOS214_OMT
+        Label               #OMT Faturamento (Argox OS 214)
+        EnumValue           #5
+      ENDPROPERTIES
+      
+      #ArgoxOS214_OMT_E
+      PROPERTIES
+        Name                #ArgoxOS214_OMT_E
+        Label               #OMT Almoxarifado (Argox OS 214)
+        EnumValue           #6
+      ENDPROPERTIES
+      
+      #ArgoxOS214_OMT_R
+      PROPERTIES
+        Name                #ArgoxOS214_OMT_R
+        Label               #OMT Recebimento (Argox OS 214)
+        EnumValue           #7
+      ENDPROPERTIES
+      
+      #ArgoxOS214_OMT_Prod
+      PROPERTIES
+        Name                #ArgoxOS214_OMT_Prod
+        Label               #OMT Produção (Argox OS 214)
+        EnumValue           #8
+      ENDPROPERTIES
+      
+      #Zebra_ZT230_Embalagem
+      PROPERTIES
+        Name                #Zebra_ZT230_Embalagem
+        Label               #Zebra_ZT230_Embalagem
+        EnumValue           #9
+      ENDPROPERTIES
+      
+      #Zebra_ZD230_Expedicao
+      PROPERTIES
+        Name                #Zebra_ZD230_Expedicao
+        Label               #Zebra_ZD230_Expedicao
+        EnumValue           #10
+      ENDPROPERTIES
+      
+    ENDTYPEELEMENTS
+  ENDENUMTYPE
+  
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : TI_OMT_0005_AddPrinterConfigurationName unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #TI_OMT_0005_AddPrinterConfigurationName
+  SHARED
+  PROPERTIES
+    Name                #TI_OMT_0005_AddPrinterConfigurationName
+    Origin              #{764A104B-7EE8-45A6-9611-DD0117F7AB09}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #BaseEnums
+      PROPERTIES
+        Name                #BaseEnums
+        ProjectGroupType    #BaseEnums
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 40
+        UTILOBJECTID 101238
+        NODETYPE 209
+        NAME #PrinterConfigurationName
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END

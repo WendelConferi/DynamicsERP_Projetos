@@ -1,0 +1,1272 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: CLS
+
+; Microsoft Dynamics AX Class: SalesFormLetter_Invoice descarregado
+; --------------------------------------------------------------------------------
+  CLSVERSION 1
+  
+  CLASS #SalesFormLetter_Invoice
+    PROPERTIES
+      Name                #SalesFormLetter_Invoice
+      Extends             #SalesFormLetter
+      Origin              #{2D170213-0000-1000-85CC-0AE79043CB6D}
+      LegacyId            #531
+    ENDPROPERTIES
+    
+    METHODS
+      SOURCE #afterOperationBody
+        #/// <summary>
+        #/// Executes the main logic after an operation, before cleanup.
+        #/// </summary>
+        #protected void afterOperationBody()
+        #{
+        #    super();
+        #    //revert back to SYS
+        #    this.createPayment();
+        #}
+      ENDSOURCE
+      SOURCE #caption
+        #/// <summary>
+        #/// Microsoft internal use only.
+        #/// </summary>
+        #/// <returns>
+        #/// A <c>ClassDescription</c> value.
+        #/// </returns>
+        #public ClassDescription caption()
+        #{
+        #    return SalesFormLetter_Invoice::description();
+        #}
+      ENDSOURCE
+      SOURCE #checkClientOutput
+        #protected boolean checkClientOutput(boolean _showError = true)
+        #{
+        #    boolean ret;
+        #
+        #    ret = super(_showError) || FormLetter::isClientOutput(this.printerSettingsEntryCertificate_W());
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #checkCtteBalance
+        #//<GSW workItem="GSW_CTTE" date="05/11/2014" dev="Rodrigo Maciel Castilho">
+        #private boolean checkCtteBalance()
+        #{
+        #    SalesParmSubTable               salesParmSubTable;
+        #    SalesTable                      salesTableValidate;
+        #    CTTE_InventTransferMovement     transferMovement;
+        #    SalesLine                       salesLine;
+        #    SalesLine_CTTE                  salesLine_Ctte;
+        #    CTTE_InventTransferBalance      transferBalance;
+        #    boolean                         ret = true;
+        #    ;
+        #
+        #    if (#CT003_ReceiveThirdMaterials)
+        #    {
+        #        while select salesParmSubTable
+        #            where salesParmSubTable.ParmId == salesFormLetterContract.parmParmId()
+        #        {
+        #            salesTableValidate = SalesTable::find(SalesParmSubTable.OrigSalesId);
+        #
+        #            if ( SalesPurchOperationType_BR::find(salesTableValidate.salesTable_BR().SalesPurchOperationType_BR).SalesPurchOperationType_CTTE().ThirdPartyControl)
+        #            {
+        #                while select ItemId,SalesQty from salesLine
+        #                    where salesLine.SalesId == salesTableValidate.SalesId
+        #                    //considerar apenas as linhas da Ordem de Venda que estão em aberto
+        #                    //<OMT workItem="TI_OMT_0003_ModuloTerceiros" date="04/08/2022" dev="Wendel Conferi">
+        #                        && SalesLine.SalesStatus == SalesStatus::BackOrder
+        #                    join InventTransferMovement from salesLine_ctte
+        #                    where salesLine_ctte.SalesLine == salesLine.RecId
+        #                {
+        #                    select RecId,ShipAccessKey,ShipCFOPId,ShipFiscalDocumentAccountNumber,ShipFiscalDocumentLineNum,ShipFiscalDocumentNumber,ShipFiscalDocumentSeries
+        #                            from transferMovement
+        #                            index hint RecIdx
+        #                            where transferMovement.RecId == salesLine_ctte.InventTransferMovement;
+        #
+        #                    if (!transferMovement.RecId)
+        #                    {
+        #                        ret = checkFailed(strFmt('O item %1 não possui saldo no deposito de terceiro',  salesLine.ItemId));
+        #                    }
+        #
+        #                    select firstOnly1 Recid from transferBalance
+        #                        index hint InventTransferMovementIdx
+        #                        where transferBalance.InventTransferMovement == transferMovement.RecId
+        #                           && transferBalance.Qty >= salesLine.SalesQty ;
+        #                    if (!transferBalance.RecId)
+        #                    {
+        #                        ret = checkFailed(strFmt('O item %1 não possui saldo no deposito de terceiro',  salesLine.ItemId));
+        #                    }
+        #                }
+        #            }
+        #        }
+        #    }
+        #    return ret;
+        #}
+        #//</GSW>
+      ENDSOURCE
+      SOURCE #checkDuplicateNum_W
+        #public boolean checkDuplicateNum_W(Num _num, SalesIdBase _salesId, TransDate _transDate)
+        #{
+        #    boolean isValid = super(_num, _salesId, _transDate);
+        #
+        #    if (isValid && _num)
+        #    {
+        #        isValid = CustInvoiceJour::checkDuplicateNum_W(_num, _salesId, _transDate);
+        #    }
+        #
+        #    return isValid;
+        #}
+      ENDSOURCE
+      SOURCE #checkInvoiceAmounts
+        #/// <summary>
+        #/// Validates if at least one of invoice lines being posted have zero line amount. Prompts for confirmation to proceed if any found.
+        #/// </summary>
+        #/// <returns>
+        #/// false if user does not allow posting for lines without line amount.
+        #/// </returns>
+        #// <GEERU>
+        #private boolean checkInvoiceAmounts()
+        #{
+        #    SalesParmLine localSalesParmLine;
+        #    boolean       ok = true;
+        #
+        #    if (SysCountryRegionCode::isLegalEntityInCountryRegion([ #isoRU ]))
+        #    {
+        #        select firstonly RecId from localSalesParmLine
+        #            where localSalesParmLine.ParmId == this.parmId() &&
+        #                 !localSalesParmLine.LineAmount;
+        #
+        #        if (localSalesParmLine)
+        #        {
+        #            ok = false;
+        #        }
+        #    }
+        #
+        #    if (! ok)
+        #    {
+        #        ok = (Box::yesNo("@SYS4082018", DialogButton::Yes, "@SYS866") == DialogButton::No) ?
+        #                         checkFailed("@SYS21533")                                                     :
+        #                         true;
+        #    }
+        #
+        #    return ok;
+        #}
+        #// </GEERU>
+      ENDSOURCE
+      SOURCE #checkInvoicePostingType_RU
+        #// <GEERU>
+        #private boolean checkInvoicePostingType_RU()
+        #{
+        #    SalesParmTable  salesParmTableLocal;
+        #    SalesParmLine   salesParmLine;
+        #    SalesLine       salesLine;
+        #
+        #    boolean         ret = true;
+        #
+        #    if (this.documentStatus() == DocumentStatus::Invoice)
+        #    {
+        #        select firstonly RecId from salesParmTableLocal
+        #            where salesParmTableLocal.ParmId                == this.parmId() &&
+        #                  salesParmTableLocal.InvoicePostingType_RU == SalesInvoicePostingType_RU::GoodsInRoute
+        #        join TableId from salesParmLine
+        #            where salesParmLine.ParmId     == salesParmTableLocal.ParmId &&
+        #                  salesParmLine.TableRefId == salesParmTableLocal.TableRefId
+        #        join TableId from salesLine
+        #            where salesLine.RecId == salesParmLine.SalesLineRecId &&
+        #                 (salesLine.StockedProduct == NoYes::No           ||
+        #                 (salesLine.SalesCategory && !salesLine.ItemId));
+        #
+        #        if (salesParmTableLocal.RecId)
+        #        {
+        #            ret = checkFailed("@GLS220090");
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+        #// </GEERU>
+      ENDSOURCE
+      SOURCE #checkInvoicePrices
+        #/// <summary>
+        #/// Validates if at least one of sales order lines being processed does not have item price specified. Prompts for confirmation to proceed if any found.
+        #/// </summary>
+        #/// <returns>
+        #/// false if user does not allow posting for lines without item price.
+        #/// </returns>
+        #// <GEEPL>
+        #private boolean checkInvoicePrices()
+        #{
+        #    SalesParmTable  salesParmTableLocal;
+        #    SalesParmLine   salesParmLine;
+        #    SalesLine       salesLine;
+        #    ParmId          currentParmId;
+        #    boolean         pricesAreValid;
+        #
+        #    pricesAreValid = true;
+        #
+        #    if (isConfigurationkeyEnabled(configurationKeyNum(TradeDates_W)) && SysCountryRegionCode::isLegalEntityInCountryRegion([#isoPL]))
+        #    {
+        #        currentParmId = this.parmId();
+        #
+        #        select firstonly RecId
+        #            from salesParmTableLocal
+        #                where salesParmTableLocal.ParmId == currentParmId
+        #        exists join salesParmLine
+        #            where salesParmLine.TableRefId       == salesParmTableLocal.TableRefId &&
+        #                  salesParmLine.ParmId           == salesParmTableLocal.ParmId
+        #        exists join salesLine
+        #            where salesLine.RecId                == salesParmLine.SalesLineRecId   &&
+        #                 !salesLine.SalesPrice;
+        #
+        #        if (salesParmTableLocal)
+        #        {
+        #            pricesAreValid = false;
+        #        }
+        #    }
+        #
+        #    if (! pricesAreValid)
+        #    {
+        #        pricesAreValid = (Box::yesNo("@GLS110181", DialogButton::Yes, "@SYS866") == DialogButton::No) ?
+        #                         checkFailed("@SYS21533")                                                     :
+        #                         true;
+        #    }
+        #
+        #    return pricesAreValid;
+        #}
+        #// </GEEPL>
+      ENDSOURCE
+      SOURCE #checkPaymentExportFormat
+        #/// <summary>
+        #/// Validates that none of the sales orders being processed has a payment method with an export file format.  If one does exist,
+        #/// the invoices cannot be processed in a batch.
+        #/// </summary>
+        #/// <returns>
+        #/// true if the validation is successful; otherwise, false.
+        #/// </returns>
+        #private boolean checkPaymentExportFormat()
+        #{
+        #    SalesParmTable      salesParmTableLocal;
+        #    SalesTable          salesTable;
+        #    CustPaymModeTable   custPaymModeTable;
+        #    boolean             isPaymentExportFormatValid = true;
+        #
+        #    if (this.batchInfo().parmBatchExecute())
+        #    {
+        #        select firstonly RecId, SalesId from salesParmTableLocal
+        #            where salesParmTableLocal.ParmId == this.parmId()
+        #        exists join salesTable
+        #            where salesTable.SalesId == salesParmTableLocal.SalesId
+        #        exists join custPaymModeTable
+        #            where custPaymModeTable.PaymMode == salesTable.PaymMode &&
+        #                  custPaymModeTable.ExportOnInvoice;
+        #
+        #        if (salesParmTableLocal)
+        #        {
+        #            isPaymentExportFormatValid = false;
+        #        }
+        #    }
+        #
+        #    if (!isPaymentExportFormatValid)
+        #    {
+        #        checkFailed(strFmt("@SYP4471330", salesParmTableLocal.SalesId));
+        #    }
+        #
+        #    return isPaymentExportFormatValid;
+        #}
+      ENDSOURCE
+      SOURCE #checkPaymentSchedule
+        #/// <summary>
+        #/// Checks payment schedule in the current invoice for adjusted payment.
+        #/// </summary>
+        #/// <returns>
+        #/// returns true if the payment schedules are adjusted correctly, otherwise false
+        #/// </returns>
+        #public boolean checkPaymentSchedule()
+        #{
+        #    boolean         ret = true;
+        #    CustPaymSched   custPaymSched;
+        #    SalesParmTable  localSalesParmTable;
+        #    str             errorText;
+        #    int             infologNum;
+        #    SalesParmUpdate salesParmUpdate = this.salesParmUpdate();
+        #
+        #    if (salesParmUpdate.numberOfSubTables() <= 1)
+        #    {
+        #        // If there is only one subtable, arrange will have no effect. Allow adjusted payments in that case.
+        #        return true;
+        #    }
+        #
+        #    // Check all documents in the current session for adjusted payments
+        #    setPrefix("@SYP4315111");
+        #
+        #    while select localSalesParmTable
+        #        where localSalesParmTable.ParmId == this.parmId()
+        #        exists join custPaymSched
+        #            where custPaymSched.ExtTableId == localSalesParmTable.TableId &&
+        #                    custPaymSched.ExtRecId == localSalesParmTable.RecId
+        #    {
+        #        ret = false;
+        #        errorText = strFmt("@SYP4315112", localSalesParmTable.SalesId);
+        #        error(errorText);
+        #
+        #        salesParmTable = localSalesParmTable;
+        #        infologNum = infolog.num();
+        #        ttsbegin;
+        #        this.updateParmTableWithErrors(Info::infoCon2Str(infolog.copy(infologNum,infologNum)));
+        #        ttscommit;
+        #    }
+        #
+        #    if (!ret)
+        #        info("@SYP4315113" + '\n' + "@SYP4315114");
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #checkPrintout_RU
+        #final protected boolean checkPrintout_RU()
+        #{
+        #    SalesLine           tmpSalesLine;
+        #    SalesParmLine       tmpSalesParmLine;
+        #    Set                 warningSet = new Set(Types::String);
+        #    SalesTable          salesTable = this.salesTable();
+        #    SetIterator         it;
+        #    SalesTotals         salesTotals;
+        #    SalesParmUpdate     salesParmUpdate = this.salesParmUpdate();
+        #    RecordSortedList    recordListSalesParmLine;
+        #
+        #    boolean ret = super();
+        #
+        #    if (this.parmCustInvoicePrintoutType_RU() == CustInvoicePrintoutType_RU::M_15)
+        #    {
+        #        if (MarkupTrans::existOfTypeCustVend_RU(salesTable.TableId, salesTable.RecId))
+        #        {
+        #            warningSet.add(strFmt("@GLS107023", salesTable.SalesId, MarkupType::CustVend));
+        #            markupOfTypeCustVendExists = true;
+        #        }
+        #
+        #        salesTotals = SalesTotals::construct(salesTable,
+        #                                             salesParmUpdate.SpecQty,
+        #                                             salesParmUpdate.SumBy,
+        #                                             salesParmUpdate.ParmId,
+        #                                             salesParmUpdate.SumSalesId,
+        #                                             this.documentStatus());
+        #        salesTotals.calc();
+        #
+        #        recordListSalesParmLine = salesTotals.recordSortedListLine();
+        #        recordListSalesParmLine.first(tmpSalesParmLine);
+        #        while (tmpSalesParmLine)
+        #        {
+        #            tmpSalesLine = tmpSalesParmLine.salesLine();
+        #
+        #            if (MarkupTrans::existOfTypeCustVend_RU(tmpSalesLine.TableId, tmpSalesLine.RecId))
+        #            {
+        #                warningSet.add(strFmt("@GLS107025", tmpSalesLine.SalesId, tmpSalesLine.LineNum, MarkupType::CustVend));
+        #                markupOfTypeCustVendExists = true;
+        #            }
+        #
+        #            if (!recordListSalesParmLine.next(tmpSalesParmLine))
+        #                break;
+        #        }
+        #
+        #        if (salesTotals.totalEndDisc())
+        #        {
+        #            warningSet.add("@GLS107055");
+        #            extraPrintoutLineExists  = true;
+        #        }
+        #
+        #        if (salesTotals.totalRoundOff())
+        #        {
+        #            warningSet.add("@GLS107056");
+        #            extraPrintoutLineExists = true;
+        #        }
+        #
+        #        if ((markupOfTypeCustVendExists ||
+        #             extraPrintoutLineExists) &&
+        #            Box::okCancel(strFmt("@GLS107057", MarkupType::CustVend),
+        #                          DialogButton::Cancel,
+        #                          "@GLS106990") == DialogButton::Cancel)
+        #        {
+        #            ret = false;
+        #
+        #            it = new SetIterator(warningSet);
+        #            while (it.more())
+        #            {
+        #                warning(it.value());
+        #                it.next();
+        #            }
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #checkServiceTariffNumber
+        #/// <summary>
+        #/// Validates a service tariff number.
+        #/// </summary>
+        #/// <returns>
+        #/// true if the service tariff number is valid; otherwise, false.
+        #/// </returns>
+        #protected boolean checkServiceTariffNumber()
+        #{
+        #    SalesParmTable      salesParmTableLocal;
+        #    SalesParmLine       salesParmLineLocal;
+        #    SalesLine           salesLineLocal;
+        #    TaxGroupHeading     taxGroupHeading;
+        #    boolean             ret = super();
+        #    TaxServiceTariff    taxServiceTariff;
+        #
+        #    if (ret && SysCountryRegionCode::isLegalEntityInCountryRegion([#isoPL]))
+        #    {
+        #        while select TableRefId, ParmId from salesParmTableLocal
+        #                where salesParmTableLocal.ParmId == this.salesParmUpdate().ParmId
+        #            join SalesId, ItemId, TaxGroup from salesLineLocal
+        #            exists join salesParmLineLocal
+        #                where salesParmLineLocal.TableRefId    == salesParmTableLocal.TableRefId &&
+        #                      salesParmLineLocal.ParmId        == salesParmTableLocal.ParmId &&
+        #                      salesParmLineLocal.InventTransId == salesLineLocal.InventTransId
+        #            exists join taxGroupHeading
+        #                where taxGroupHeading.TaxGroup == salesLineLocal.TaxGroup &&
+        #                      taxGroupHeading.IsMandatoryServiceTariff_PL == 1
+        #            notexists join taxServiceTariff
+        #                where taxServiceTariff.ParentTableId == salesLineLocal.TableId &&
+        #                      taxServiceTariff.ParentRecId == salesLineLocal.RecId
+        #        {
+        #            ret = ret & checkFailed(
+        #                strFmt("@GLS115888", salesLineLocal.SalesId, salesLineLocal.ItemId, salesLineLocal.TaxGroup));
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+        #// </GEEPL>
+      ENDSOURCE
+      SOURCE #checkSumBy
+        #protected boolean checkSumBy()
+        #{
+        #    SalesParmTable  salesParmTableLocal;
+        #    boolean         ret;
+        #    SalesParmUpdate salesParmUpdate = this.salesParmUpdate();
+        #
+        #    ret = super();
+        #
+        #    if (ret && salesParmUpdate.SumBy != AccountOrder::None)
+        #    {
+        #        select firstonly salesParmTableLocal
+        #                where salesParmTableLocal.ParmId                == salesParmUpdate.ParmId &&
+        #                      salesParmTableLocal.InvoicePostingType_RU == SalesInvoicePostingType_RU::GoodsInRoute;
+        #
+        #        if (salesParmTableLocal)
+        #        {
+        #            ret = checkFailed(strFmt("@GLS114814", SalesInvoicePostingType_RU::GoodsInRoute));
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+        #
+      ENDSOURCE
+      SOURCE #checkUnitMeasureTributary
+        #// <Venture>
+        #// <2017.08.04 - Leandro.Silva - VEN033>
+        #private boolean checkUnitMeasureTributary()
+        #{
+        #    SalesParmLine               salesParmLine;
+        #    InventTable                 inventTable;
+        #    TaxFiscalClassification_BR  taxFiscalClassification;
+        #    SalesTable                  salesTable = this.salesTable();
+        #
+        #    boolean                     ret = true;
+        #
+        #    if (salesTable.deliveryAddress().CountryRegionId != InventSite::find(salesTable.InventSiteId).fiscalEstablishment().postalAddress().CountryRegionId)
+        #    {
+        #        while select salesParmLine
+        #            where salesParmLine.ParmId == this.parmId()
+        #            join inventTable
+        #                where inventTable.ItemId == salesParmLine.ItemId
+        #                join taxFiscalClassification
+        #                    where   taxFiscalClassification.FiscalClassificationId == inventTable.TaxFiscalClassification_BR
+        #        {
+        #            if (!taxFiscalClassification.UnitMeasureTributary)
+        #            {
+        #                ret = checkFailed(strFmt("@VEN99", inventTable.TaxFiscalClassification_BR));
+        #            }
+        #            else if (!UnitOfMeasureConverter::canBeConverted(   UnitOfMeasure::unitOfMeasureIdBySymbol(salesParmLine.SalesUnit),
+        #                                                                UnitOfMeasure::unitOfMeasureIdBySymbol(taxFiscalClassification.UnitMeasureTributary),
+        #                                                                InventTable::itemProduct(salesParmLine.ItemId)))
+        #            {
+        #                ret = checkFailed(strFmt("@VEN102", taxFiscalClassification.UnitMeasureTributary,
+        #                                                    salesParmLine.ItemId));
+        #            }
+        #        }
+        #    }
+        #
+        #    return ret;
+        #}
+        #// </Venture>
+      ENDSOURCE
+      SOURCE #classDeclaration
+        #[SysOperationJournaledParametersAttribute(true)]
+        #class SalesFormLetter_Invoice extends SalesFormLetter
+        #{
+        #    SalesFormLetterInvoiceContract salesFormLetterInvoiceContract;
+        #
+        #    // <GEERU>
+        #    boolean                 markupOfTypeCustVendExists;
+        #    boolean                 extraPrintoutLineExists;
+        #    // </GEERU>
+        #
+        #    #define.currentVersion(9)
+        #    #LOCALMACRO.ParmList
+        #        printerSettingsBillOfExchange
+        #    #ENDMACRO
+        #}
+      ENDSOURCE
+      SOURCE #createPayment
+        #/// <summary>
+        #/// Creates payments and prints payment proposals if it is needed.
+        #/// </summary>
+        #protected void createPayment()
+        #{
+        #    //revert back to SYS
+        #    Set journalSet;
+        #    SetEnumerator se;
+        #    CustInvoiceJour custInvoiceJour;
+        #    CustTrans custTrans;
+        #
+        #    journalSet = Set::create(SysOperationHelper::base64Decode(formletterOutputContract.parmAllJournals()));
+        #    se = journalSet.getEnumerator();
+        #
+        #    while (se.moveNext())
+        #    {
+        #        custInvoiceJour = se.current();
+        #        custTrans = custInvoiceJour.custTrans();
+        #
+        #        if (CustPaymModeTable::find(custTrans.PaymMode).PaymOnInvoice)
+        #        {
+        #            CustVendPaymInvoiceWithJournal::construct(custInvoiceJour).run();
+        #        }
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #documentStatus
+        #public DocumentStatus documentStatus()
+        #{
+        #    return DocumentStatus::Invoice;
+        #}
+      ENDSOURCE
+      SOURCE #endUpdate
+        #public void  endUpdate()
+        #{
+        #    SalesParmUpdate salesParmUpdate = this.salesParmUpdate();
+        #    if (salesParmUpdate.Proforma)
+        #    {
+        #        ttsbegin;
+        #        salesParmUpdate = SalesParmUpdate::find(salesParmUpdate.ParmId, true);
+        #        salesParmUpdate.delete();
+        #        ttscommit;
+        #    }
+        #
+        #    if (SalesParmUpdate::exist(this.parmId()))
+        #    {
+        #        ttsbegin;
+        #
+        #        salesParmUpdate = SalesParmUpdate::find(this.parmId(), true);
+        #
+        #        salesParmUpdate.EndDateTime     = DateTimeUtil::newDateTime(systemDateGet(),timeNow(),DateTimeUtil::getUserPreferredTimeZone());
+        #        salesParmUpdate.update();
+        #
+        #        ttscommit;
+        #    }
+        #    this.salesParmUpdate(salesParmUpdate);
+        #}
+      ENDSOURCE
+      SOURCE #getInvoiceContract
+        #public SalesFormLetterInvoiceContract getInvoiceContract()
+        #{
+        #    return salesFormLetterInvoiceContract;
+        #}
+      ENDSOURCE
+      SOURCE #getValuesFormletterParmData
+        #protected void getValuesFormletterParmData(FormLetterParmDataOutputContract _outputContract)
+        #{
+        #
+        #    super(_outputContract);
+        #
+        #    giroAllSame = _outputContract.parmGiroAllSame();
+        #}
+      ENDSOURCE
+      SOURCE #mustCheckIntrastat
+        #protected boolean mustCheckIntrastat()
+        #{
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #new
+        #/// <summary>
+        #/// Creates a new service controller object.
+        #/// </summary>
+        #/// <param name="_className">
+        #/// The class name of the service class.
+        #/// </param>
+        #/// <param name="_methodName">
+        #/// The method name of the service operation.
+        #/// </param>
+        #/// <param name="_executionMode">
+        #/// The execution mode to use when executing the service operation.
+        #/// </param>
+        #/// <remarks>
+        #/// parm methods exist for each constructor parameter. The <c>initializeFromArgs</c> method can also be
+        #/// used to initialize a controller. If those options for initialization are used, the default values
+        #/// can be used in the constructor.
+        #/// </remarks>
+        #public void new(
+        #    IdentifierName _className   =   classStr(FormletterService),
+        #    IdentifierName _methodName  =   methodStr(FormletterService, postSalesOrderInvoice),
+        #    SysOperationExecutionMode _executionMode = SysOperationExecutionMode::Synchronous)
+        #{
+        #    super(_className, _methodName, _executionMode);
+        #}
+      ENDSOURCE
+      SOURCE #pack
+        #container  pack()
+        #{
+        #    return [#CurrentVersion,#ParmList] + [super()]
+        #        + [this.pdsPack()]
+        #    ;
+        #}
+      ENDSOURCE
+      SOURCE #parmExtraPrintoutLineExists_RU
+        #public boolean parmExtraPrintoutLineExists_RU(boolean _extraPrintoutLineExists = salesFormLetterContract.parmExtraPrintoutLineExists_RU())
+        #{
+        #    return salesFormLetterContract.parmExtraPrintoutLineExists_RU(_extraPrintoutLineExists);
+        #}
+      ENDSOURCE
+      SOURCE #parmMarkupOfTypeCustVendExists_RU
+        #public boolean parmMarkupOfTypeCustVendExists_RU(boolean _markupOfTypeCustVendExists = markupOfTypeCustVendExists)
+        #{
+        #    markupOfTypeCustVendExists = _markupOfTypeCustVendExists;
+        #    return markupOfTypeCustVendExists;
+        #}
+      ENDSOURCE
+      SOURCE #postAfterOperationBody
+        #/// <summary>
+        #/// post InventTransferMovement and update InventTransferBalance
+        #/// </summary>
+        #/// <remarks>
+        #///
+        #/// </remarks>
+        #// <GSW: 21/02/2014 - Rodrigo Maciel Castilho - GSW_CTTE>
+        #public void postAfterOperationBody()
+        #{
+        #    CTTE_InventTransferMovement     transferMovement;
+        #    CTTE_InventTransferMovement     transferMovementForInsert;
+        #    SalesLine_CTTE                  salesLine_Ctte;
+        #    SalesLine                       salesLine;
+        #    custInvoiceJour                 custInvoiceJour;
+        #    FiscalDocumentLine_BR           fiscalDocumentLine;
+        #    FiscalDocument_BR               fiscalDocument;
+        #    CustInvoiceTrans                custInvoiceTrans;
+        #    CTTE_InventTransferBalance      transferBalance;
+        #    Set                             journalSet;
+        #    SetEnumerator                   se;
+        #    ;
+        #    if (#CT003_ReceiveThirdMaterials)
+        #    {
+        #        journalSet = Set::create(SysOperationHelper::base64Decode(formletterOutputContract.parmAllJournals()));
+        #        se = journalSet.getEnumerator();
+        #        while (se.moveNext())
+        #        {
+        #            custInvoiceJour = se.current();
+        #            fiscalDocument = FiscalDocument_BR::findByRef(tableNum(custInvoiceJour),custInvoiceJour.RecId);
+        #
+        #            if ( SalesPurchOperationType_BR::find(custInvoiceJour.custInvoiceJour_BR().SalesPurchOperationType_BR).SalesPurchOperationType_CTTE().ThirdPartyControl)
+        #            {
+        #                ttsBegin;
+        #
+        #                while select LineNum,CFOP,InventTransId,ItemId,Quantity,UnitPrice from fiscaldocumentline
+        #                    join InventDimId,ItemId,InventTransId,InventDimId, OrigSalesId from custInvoiceTrans//<2016.09.05 - Thiago.Miranda - VEN014>
+        #                    where CustInvoiceTrans.InvoiceId == custInvoiceJour.InvoiceId
+        #                       && custInvoiceTrans.SalesId   == custInvoiceJour.SalesId
+        #                       && custInvoiceTrans.InvoiceDate == custInvoiceJour.InvoiceDate
+        #                       && custInvoiceTrans.numberSequenceGroup == custInvoiceJour.numberSequenceGroup
+        #                       && custInvoiceTrans.TableId == fiscalDocumentLine.RefTableId
+        #                       && custInvoiceTrans.RecId == fiscalDocumentLine.RefRecId
+        #                {
+        #                    select RecId,ShipAccessKey,ShipCFOPId,ShipFiscalDocumentAccountNumber,ShipFiscalDocumentLineNum,ShipFiscalDocumentNumber,ShipFiscalDocumentSeries
+        #                        from transferMovement
+        #                        index hint RecIdx
+        #                        where !transferMovement.Canceled
+        #                        join ProdId from salesLine_Ctte
+        #                        where salesLine_Ctte.InventTransferMovement == transferMovement.RecId
+        #                        exists join salesLine
+        #                        where salesLine.RecId == salesLine_Ctte.SalesLine
+        #                           && salesLine.SalesId == custInvoiceTrans.OrigSalesId//<2016.09.05 - Thiago.Miranda - VEN014>
+        #                           && salesLine.InventTransId == custInvoiceTrans.InventTransId;
+        #
+        #                    if (transferMovement.RecId)
+        #                    {
+        #                        transferMovementForInsert.clear();
+        #                        transferMovementForInsert.ShipAccessKey = transferMovement.ShipAccessKey;
+        #                        transferMovementForInsert.ShipCFOPId = transferMovement.ShipCFOPId;
+        #                        transferMovementForInsert.ShipFiscalDocumentAccountNumber = transferMovement.ShipFiscalDocumentAccountNumber;
+        #                        transferMovementForInsert.ShipFiscalDocumentLineNum = transferMovement.ShipFiscalDocumentLineNum;
+        #                        transferMovementForInsert.ShipFiscalDocumentNumber = transferMovement.ShipFiscalDocumentNumber;
+        #                        transferMovementForInsert.ShipFiscalDocumentSeries = transferMovement.ShipFiscalDocumentSeries;
+        #
+        #                        transferMovementForInsert.CustVendACType                     = CustVendACType::Cust;
+        #                        transferMovementForInsert.ShipFiscalDocumentAccountNumber    = custInvoiceJour.InvoiceAccount;
+        #                        transferMovementForInsert.SalesPurchOperationTypeRecId_BR    = custInvoiceJour.custInvoiceJour_BR().SalesPurchOperationType_BR;
+        #                        transferMovementForInsert.InventSiteId                       = custInvoiceTrans.inventSiteId();
+        #                        transferMovementForInsert.SourceInvoice                      = CTTE_SourceInvoice::SalesOrder;
+        #                        transferMovementForInsert.InventTransferType                 = CTTE_InventTransferType::Devolution;
+        #
+        #                        transferMovementForInsert.SalesId                            = custInvoiceJour.SalesId;
+        #
+        #                        transferMovementForInsert.TransDate                          = custInvoiceJour.InvoiceDate;
+        #                        transferMovementForInsert.InventLocationId                   = custInvoiceJour.inventLocationId;
+        #                        transferMovementForInsert.initFromReturnFiscalDocumentLine_Br(fiscaldocumentline);
+        #                        transferMovementForInsert.InventTransId                      = transferMovementForInsert.InventTransId ? transferMovementForInsert.InventTransId
+        #                                                                                                                                 : custInvoiceTrans.InventTransId;
+        #                        transferMovementForInsert.InventDimId = custInvoiceTrans.InventDimId;
+        #
+        #                        transferMovementForInsert.ProdId      = salesLine_Ctte.ProdId;
+        #
+        #                        transferMovementForInsert.initFromReturnFiscalDocument_BR(fiscalDocument);
+        #
+        #                        if (transferMovementForInsert.validateWrite())
+        #                        {
+        #                            transferMovementForInsert.insert();
+        #                        }
+        #
+        #                        transferBalance             = CTTE_InventTransferBalance::find(transferMovement.RecId,true);
+        #                        transferBalance.Qty         -= fiscalDocumentLine.Quantity;
+        #
+        #                        //<Venture>
+        #                        //<2016.09.05 - Thiago.Miranda - VEN014>
+        #                        transferBalance.ConsumedQty -= fiscalDocumentLine.Quantity;
+        #                        //</Venture>
+        #
+        #                        transferBalance.TotalAmount = transferBalance.Qty * transferBalance.Price;
+        #                        transferBalance.update();
+        #                    }
+        #                }
+        #                ttsCommit;
+        #             }
+        #        }
+        #    }
+        #}
+        #// </GSW>
+      ENDSOURCE
+      SOURCE #printBankCollection
+        #void printBankCollection()
+        #{
+        #    //<BankCollection>
+        #    Args            argsLocal = new Args();
+        #    CustInvoiceJour custInvoiceJourLocal;
+        #    //</BankCollection>
+        #    ;
+        #
+        #    //<BankCollection>
+        #    //<GSW workitem="BankCollection" date="06/03/2014" author="Lucas Soliguetti">
+        #    //if(SalesParameters::find().BankCollectionPrintMethod == BankCollectionPrintMethod::Invoice)
+        #    if (CustPaymModeTable::find(this.salesTable().PaymMode).BankCollectionPrintMethod == BankCollectionPrintMethod::Invoice)
+        #    //</GSW>
+        #    {
+        #        if (this.parmJournalRecord().TableId == tableNum(CustInvoiceJour))
+        #        {
+        #            custInvoiceJourLocal = this.parmJournalRecord();
+        #        }
+        #
+        #        argsLocal.record(custInvoiceJourLocal.custTrans());
+        #        BankCollectionPrint_BankInvoice::main(argsLocal);
+        #    }
+        #    //</BankCollection>
+        #}
+      ENDSOURCE
+      SOURCE #printExtraDocuments
+        #protected boolean printExtraDocuments()
+        #{
+        #    return this.printEntryCertificate_W();
+        #}
+      ENDSOURCE
+      SOURCE #printMgmtDocumentType
+        #/// <summary>
+        #///    Identifies the print management document type.
+        #/// </summary>
+        #/// <returns>
+        #///    The print management document type for a sales order invoice.
+        #/// </returns>
+        #protected PrintMgmtDocumentType printMgmtDocumentType()
+        #{
+        #    return PrintMgmtDocumentType::SalesOrderInvoice;
+        #}
+        #
+        #
+      ENDSOURCE
+      SOURCE #run
+        #/// <summary>
+        #/// Runs the event handler subscription.
+        #/// </summary>
+        #public void run()
+        #{
+        #    //<BankCollection>
+        #    //<GSW workitem="BankCollection" date="06/03/2014" author="Lucas Soliguetti">
+        #    //if(SalesParameters::find().BankCollectionPrintMethod == BankCollectionPrintMethod::Invoice &&
+        #    //   !this.salesTable().PaymMode && SalesParameters::find().EnableBankCollection)
+        #    //<GSW workitem="BUGFIX3049_ERRO_LANCAR_OV" date="27/08/2014" author="Alan Pompilho">
+        #    if(this.salesTable())
+        #    {
+        #        if(!this.salesTable().PaymMode && SalesParameters::find().EnableBankCollection)
+        #        //</GSW>
+        #        {
+        #            throw error("O método de pagamento deve ser preenchido");
+        #        }
+        #        //</BankCollection>
+        #    }
+        #   //</GSW>
+        #    super();
+        #
+        #    //<BankCollection>
+        #    if(CustPaymModeTable::find(this.salesTable().PaymMode).AccountType == LedgerJournalACType::Bank && SalesParameters::find().EnableBankCollection)
+        #    {
+        #        this.printBankCollection();
+        #    }
+        #    //</BankCollection>
+        #
+        #    // <GCN>
+        #    if (CustParameters::isTaxIntegrationSystem_CN())
+        #    {
+        #        taxProfileMap = SalesFormLetter_Invoice::getTaxProfileMap_CN(this);
+        #        // Map: Key [SalesId, ParmId], Value[TaxProfileTable_CN, CUstInvoiceJour]
+        #        // If taxProfile Map is null, we can not get the profile table and this journal can not be exported.
+        #        if (taxProfileMap)
+        #        {
+        #            TaxExportServiceTaxIntegration_CN::directExportSalesOrderTaxFile(taxProfileMap);
+        #        }
+        #    }
+        #    // </GCN>
+        #}
+        #
+      ENDSOURCE
+      SOURCE #selectFromJournal
+        #public void selectFromJournal(container _packedTmpFrmVirtualList)
+        #{
+        #    SalesFormletterParmDataInvoice salesFormletterParmData = SalesFormletterParmData::newChooseLines(this.packDataContract(salesFormLetterContract), true);
+        #    FormLetterParmDataOutputContract outputContract;
+        #
+        #    salesFormletterParmData.selectFromJournal(_packedTmpFrmVirtualList);
+        #    outputContract = salesFormletterParmData.getOutputContract();
+        #    this.getValuesFormletterParmData(outputContract);
+        #
+        #    this.reArrangeNow(true);
+        #}
+        #
+      ENDSOURCE
+      SOURCE #setNewContract
+        #protected void setNewContract(FormLetterContract _contract)
+        #{
+        #    super(_contract);
+        #    if (!contractIsFromPreviousVersion)
+        #    {
+        #        salesFormLetterInvoiceContract = _contract;
+        #    }
+        #}
+      ENDSOURCE
+      SOURCE #shouldRunXpp
+        #/// <summary>
+        #/// Determines whether to run X++ code instead of IL.
+        #/// </summary>
+        #/// <returns>
+        #/// true to run X++ code; otherwise, false.
+        #/// </returns>
+        #protected boolean shouldRunXpp()
+        #{
+        #    ShipCarrierShippingRequest  shippingRequest;
+        #    SalesParmTable localSalesParmTable;
+        #    boolean runXpp = super();
+        #
+        #    if (!runXpp
+        #        && isConfigurationkeyEnabled(configurationKeyNum(ShipCarrier))
+        #        && !this.isInBatch())
+        #    {
+        #        select firstonly RecId from localSalesParmTable
+        #            where localSalesParmTable.ParmId == this.salesParmUpdate().ParmId
+        #        exists join shippingRequest
+        #            where shippingRequest.SalesId == localSalesParmTable.SalesId
+        #                && shippingRequest.ErrorRetreivingCharge == NoYes::Yes;
+        #
+        #        if (localSalesParmTable)
+        #        {
+        #            runXpp = true;
+        #        }
+        #    }
+        #
+        #    // <GEEPL>
+        #    if (!runXpp && this.fiscalDocType_PL() == PlFiscalDocType::FiscalDocument)
+        #    {
+        #        runXpp = true;
+        #    }
+        #    // </GEEPL>
+        #
+        #    return runXpp;
+        #}
+      ENDSOURCE
+      SOURCE #unpack
+        #boolean  unpack(container  _packedClass)
+        #{
+        #    Integer  version = conPeek(_packedClass,1);
+        #    container packedBase;
+        #
+        #    container   pdsPackedClass;
+        #
+        #    ParmId          parmId;
+        #    SalesParmUpdate salesParmUpdate;
+        #    NoYes           backorder;
+        #    NoYes           queryCriteria;
+        #    NoYes           editing;
+        #    Printout        printout;
+        #    NoYes           printFormletter;
+        #    NoYes           printCODLabel;
+        #    NoYes           printFreightSlip;
+        #    container       printerSettingsFormLetter;
+        #    container       printerSettingsFreightSlip;
+        #    container       printerSettingsCODLabel;
+        #    NoYes           printShippingLabel;
+        #    container       printerSettingsShippingLabel;
+        #    container       printerSettingsFormLetterCopy;
+        #    boolean         usePrintManagement;
+        #
+        #    #LOCALMACRO.ParmList_v5
+        #        parmId,
+        #        salesParmUpdate,
+        #        backorder,
+        #        queryCriteria,
+        #        editing,
+        #        printOut,
+        #        printFormletter,
+        #        printCODLabel,
+        #        printFreightSlip,
+        #        printerSettingsFormLetter,
+        #        printerSettingsFreightSlip,
+        #        printerSettingsCODLabel,
+        #        printShippingLabel,
+        #        printerSettingsShippingLabel,
+        #        printerSettingsBillOfExchange,
+        #        printerSettingsFormLetterCopy,
+        #        usePrintManagement
+        #    #ENDMACRO
+        #
+        #    switch (version)
+        #    {
+        #        case #CurrentVersion :
+        #            [version, #ParmList, packedBase
+        #            , pdsPackedClass
+        #            ] = _packedClass;
+        #            this.pdsUnpack(pdsPackedClass);
+        #            return super(packedBase);
+        #
+        #        case 7+1 /*case is old currentversion + old parentversion*/ :
+        #            [version, #parmList_v5] = _packedClass;
+        #            this.setNewContract(SalesFormLetterInvoiceContract::construct());
+        #
+        #            contractIsFromPreviousVersion = true;
+        #            this.parmId(parmId);
+        #            this.salesParmUpdate(salesParmUpdate);
+        #            this.printout(printout);
+        #            this.printFormLetter(printFormletter);
+        #            this.printCODLabel(printCODLabel);
+        #            this.updatePrinterSettingsFormLetter(printerSettingsFormletter, PrintSetupOriginalCopy::Original);
+        #            this.updatePrinterSettingsFormLetter(printerSettingsFormletterCopy, PrintSetupOriginalCopy::Copy);
+        #            this.updatePrinterSettingsCODLabel(printerSettingsCODLabel);
+        #            this.printShippingLabel(printShippingLabel);
+        #            this.updatePrinterSettingsShippingLabel(printerSettingsShippingLabel);
+        #            this.usePrintManagement(usePrintManagement);
+        #            break;
+        #
+        #        default :
+        #            return super(_packedClass);
+        #    }
+        #
+        #    return true;
+        #}
+      ENDSOURCE
+      SOURCE #updateParmTableWithErrors
+        #/// <summary>
+        #///    Updates a <c>salesParmTable</c> record with the specified log text.
+        #/// </summary>
+        #/// <param name="_logText">
+        #///    The log text to assign to the <c>salesParmTable</c> record.
+        #/// </param>
+        #public void updateParmTableWithErrors(LogText _logText)
+        #{
+        #    salesParmTable = SalesParmTable::find(salesParmTable.ParmId, salesParmTable.TableRefId, true);
+        #    salesParmTable.Log = _logText;
+        #    salesParmTable.updateParmJobStatusContainErrors();
+        #}
+        #
+      ENDSOURCE
+      SOURCE #validate
+        #/// <summary>
+        #/// Validates whether it is all right to continue.
+        #/// </summary>
+        #/// <param name="_calledFrom">
+        #/// Identifies the object from which this method is called. The default value is null.
+        #/// </param>
+        #/// <returns>
+        #/// true if it is all right to continue; otherwise, false.
+        #/// </returns>
+        #/// <remarks>
+        #/// The validate method is used for validating if it is all right to close the sales posting form when
+        #/// you post sales orders.
+        #/// </remarks>
+        #boolean validate(Object _calledFrom = null)
+        #{
+        #    boolean ok;
+        #
+        #    ok = super();
+        #
+        #    if (ok)
+        #    {
+        #        ok = this.validateBankLC();
+        #    }
+        #
+        #    if (ok && ! giroAllSame  &&  !this.salesParmUpdate().LateSelection)
+        #    {
+        #        if (Box::okCancel("@SYS58570", DialogButton::Cancel) == DialogButton::Cancel)
+        #            ok = checkFailed("@SYS21533");
+        #    }
+        #
+        #    //<GMX>
+        #    if(EInvoiceParameters_MX::isElectronicInvoiceEnabled())
+        #    {
+        #        // check we have read permissions on the private key for the digital certificate
+        #        if(!DigitalCertificateManager::isCurrentPrivateKeyReadable())
+        #        {
+        #            ok = checkFailed("@SYS341994");
+        #        }
+        #
+        #        if(!EInvoiceParameters_MX::schemaFileExists())
+        #        {
+        #            ok = checkFailed(strFmt("@SYS109820", EInvoiceParameters_MX::find().cfdXsdFile));
+        #        }
+        #    }
+        #
+        #    if(EInvoiceCFDIParameters_MX::isElectronicInvoiceEnabled())
+        #    {
+        #        if (!DigitalCertificateManager::isCurrentCFDIPACPrivateKeyReadable() || !DigitalCertificateManager::isCurrentPrivateKeyReadable())
+        #        {
+        #            ok = checkFailed("@SYS341994");
+        #        }
+        #
+        #        if (!EInvoiceCFDIParameters_MX::schemaFileExists())
+        #        {
+        #            ok = checkFailed(strFmt("@SYS109820", EInvoiceCFDIParameters_MX::find().cfdiXsdFile));
+        #        }
+        #    }
+        #    //</GMX>
+        #
+        #    // <GEERU>
+        #    if (SysCountryRegionCode::isLegalEntityInCountryRegion([#isoRU]))
+        #    {
+        #        ok = this.checkInvoicePostingType_RU() && ok;
+        #        ok = AlcoholLicenseTable_RU::checkAlcoholLicenseSeriesNumInInvoice(this.salesTable().custTable_InvoiceAccount(),
+        #                                                                           this.salesParmUpdate().ParmId) && ok;
+        #    }
+        #    // </GEERU>
+        #
+        #    // <GEEPL>
+        #    ok = ok && this.checkInvoicePrices();
+        #    // </GEEPL>
+        #
+        #    // <GEERU>
+        #    ok = this.checkInvoiceAmounts() && ok;
+        #    // </GEERU>
+        #
+        #    ok = ok && this.checkPaymentExportFormat();
+        #    //<GSW workItem="GSW_CTTE" date="05/11/2014" dev="Rodrigo Maciel Castilho">
+        #    ok = ok && this.checkCtteBalance();
+        #    //</GSW>
+        #
+        #    if (ok && this.reArrangeNow())
+        #    {
+        #        ok = this.checkPaymentSchedule();
+        #    }
+        #
+        #    // <Venture>
+        #    // <2017.08.04 - Leandro.Silva - VEN033>
+        #    if (SalesParameters::find().ValidateTributaryUnitMeasure)
+        #    {
+        #        ok = ok && this.checkUnitMeasureTributary();
+        #    }
+        #    // </Venture>
+        #
+        #    return ok;
+        #}
+      ENDSOURCE
+      SOURCE #validateBankLC
+        #/// <summary>
+        #///    Validates that the letter of credit required information is attached with the invoice.
+        #/// </summary>
+        #/// <returns>
+        #///    true if the validation is successful; otherwise, false.
+        #/// </returns>
+        #private boolean validateBankLC()
+        #{
+        #    boolean ret = true;
+        #    SalesParmUpdate salesParmUpdate = this.salesParmUpdate();
+        #    if (BankLCExportFeatureChecker::checkBankLCExportEnabled()
+        #        && !this.proforma())
+        #    {
+        #        ret = BankLCExportType::validateDocuments(salesParmUpdate.ParmId, salesParmUpdate.DocumentStatus);
+        #    }
+        #
+        #    return ret;
+        #}
+      ENDSOURCE
+      SOURCE #validateTaxIntegration_CN
+        #/// <summary>
+        #/// Event Handler after Validate method.
+        #/// </summary>
+        #/// <returns>
+        #/// True when tax integration is validated, otherwise false.
+        #/// </returns>
+        #public boolean validateTaxIntegration_CN()
+        #{
+        #    SalesParmTable                      localSalesParmTable;
+        #    TaxValidateForTaxIntegration_CN     taxValidateForTaxIntegration;
+        #    boolean                             returnValue = true;
+        #    Map                                 map;
+        #
+        #    if (CustParameters::isTaxIntegrationSystem_CN())
+        #    {
+        #        map = new Map(Types::Container, Types::Container);
+        #
+        #        while select localSalesParmTable
+        #                where localSalesParmTable.ParmId == this.parmId()
+        #        {
+        #            taxValidateForTaxIntegration = TaxValidateForTaxIntegration_CN::construct(localSalesParmTable);
+        #
+        #            returnValue = taxValidateForTaxIntegration.validate();
+        #
+        #            if (!returnValue)
+        #            {
+        #                break;
+        #            }
+        #
+        #            if (map.insert([localSalesParmTable.SalesId, localSalesParmTable.ParmId],[taxValidateForTaxIntegration.parmTaxprofileTable()]))
+        #            {
+        #                this.parmTaxProfileMap(map);
+        #            }
+        #        }
+        #    }
+        #
+        #    return returnValue;
+        #}
+        #// </GCN>
+      ENDSOURCE
+      SOURCE #description
+        #private static ClassDescription  description()
+        #{
+        #    return "@SYS23177";
+        #}
+      ENDSOURCE
+      SOURCE #getTaxProfileMap_CN
+        #private static Map getTaxProfileMap_CN(SalesFormLetter_Invoice    _salesFormLetter)
+        #{
+        #    CustInvoiceJour     postedCustInvoiceJour;
+        #    Set                 postJournalSet;
+        #    SetEnumerator       postJournalSetEnumerator;
+        #    Map                 taxProfileMap = new Map(Types::Container, Types::Container);
+        #    container           currentKeyCon;
+        #    container           currentValueCon;
+        #
+        #
+        #    taxProfileMap = _salesFormLetter.parmTaxProfileMap();
+        #    if (taxProfileMap)
+        #    {
+        #        postJournalSet = Set::create(SysOperationHelper::base64Decode(_salesFormLetter.getOutputContract().parmAllJournals()));
+        #        postJournalSetEnumerator = postJournalSet.getEnumerator();
+        #        while (postJournalSetEnumerator.moveNext())
+        #        {
+        #            postedCustInvoiceJour = postJournalSetEnumerator.current();
+        #
+        #            currentKeyCon = [postedCustInvoiceJour.SalesId, postedCustInvoiceJour.ParmId];
+        #            // get value form taxProfileMap
+        #            if (!taxProfileMap.empty() && taxProfileMap.exists(currentKeyCon))
+        #            {
+        #                currentValueCon = taxProfileMap.lookup(currentKeyCon);
+        #                currentValueCon = conIns(currentValueCon, 2, postedCustInvoiceJour.RecId);
+        #                taxProfileMap.insert(currentKeyCon, currentValueCon);
+        #            }
+        #        }
+        #    }
+        #    return taxProfileMap;
+        #}
+      ENDSOURCE
+      SOURCE #newInvoice
+        #static public SalesFormLetter_Invoice newInvoice(
+        #    IdentifierName _className  = classStr(FormletterService),
+        #    IdentifierName _methodName = methodStr(FormletterService, postSalesOrderInvoice),
+        #    SysOperationExecutionMode _executionMode = SysOperationExecutionMode::Synchronous)
+        #{
+        #    SalesFormLetter_Invoice formletter = new SalesFormLetter_Invoice(_className, _methodName, _executionMode);
+        #    formletter.init();
+        #    return formletter;
+        #
+        #}
+      ENDSOURCE
+    ENDMETHODS
+    EVENTS
+      METHOD #afterOperationBody
+        EVENTHANDLERS
+          EVENTHANDLER #postAfterOperationBodyHandler
+            PROPERTIES
+              CalledWhen          #Post
+              Class               #CTTE_SalesFormLetter_InvoiceHandler
+              Method              #postAfterOperationBodyHandler
+              AOTlink             #\Classes\CTTE_SalesFormLetter_InvoiceHandler\postAfterOperationBodyHandler
+            ENDPROPERTIES
+            
+          ENDEVENTHANDLER
+        ENDEVENTHANDLERS
+      ENDMETHOD
+    ENDEVENTS
+  ENDCLASS
+
+***Element: PRN
+
+; Microsoft Dynamics AX Project : TI_OMT_0003_ModuloTerceiros unloaded
+; --------------------------------------------------------------------------------
+  PROJECTVERSION 2
+  
+  PROJECT #TI_OMT_0003_ModuloTerceiros
+  SHARED
+  PROPERTIES
+    Name                #TI_OMT_0003_ModuloTerceiros
+    Origin              #{0EF4DE6B-1021-4265-AD4C-A36C8BD94C99}
+  ENDPROPERTIES
+  
+    PROJECTCLASS ProjectNode
+    GROUP #classes
+      PROPERTIES
+        Name                #classes
+        ProjectGroupType    #Classes
+        GroupMask           #
+        PreventEditProperties #No
+      ENDPROPERTIES
+      
+      BEGINNODE
+        FILETYPE 0
+        UTILTYPE 45
+        UTILOBJECTID 531
+        NODETYPE 329
+        NAME #SalesFormLetter_Invoice
+      ENDNODE
+      ENDGROUP
+      
+  ENDPROJECT
+  
+
+***Element: END
